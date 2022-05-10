@@ -58,6 +58,19 @@ async function createServer() {
         res.status(404).json({ message: 'Endpoint not found'})
     });
 
+    app.use((error, req, res, next) => {
+        if(axios.isAxiosError(error)) {
+            console.log("Received axios error", {
+                data: error.response.data,
+                status: error.response.status
+            })
+        } else {
+            console.log("Received unknown error", error);
+        }
+
+        res.status(500).json({ message: "Internal server error "});
+    })
+
     return app;
 }
 
