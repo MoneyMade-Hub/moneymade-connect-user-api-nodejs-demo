@@ -1,38 +1,57 @@
 const express = require("express");
-const app = express();
+const { initializeSDK } = require("./sdk");
 
-app.post("/moneymade-users",(req, res) => {
-    console.log("Creating MoneyMade user");
 
-    res.status(201).json({ id: 1 })
-});
+async function createServer() {
+    const app = express();
 
-app.post("/moneymade-users/sessions",(req, res) => {
-    console.log("Creating MoneyMade user session");
+    const sdk = await initializeSDK();
 
-    res.status(201).json({ id: 1, user: { id: 1 } })
-});
+    app.post("/moneymade-users",async (req, res, next) => {
+        try {
+            console.log("Creating MoneyMade user");
 
-app.get("/moneymade-users/:userId/accounts",(req, res) => {
-    console.log(`Getting user (${req.params.userId}) accounts`);
+            const response = await sdk.users.create({
+                email: 'rostyk@moneymade.io',
+                client_user_id: 'rostyk_moneymade_io'
+            }).catch(console.log);
 
-    res.status(200).json([{ id: 1 }])
-});
 
-app.get("/moneymade-users/accounts/:accountId/bank-details",(req, res) => {
-    console.log(`Getting account (${req.params.accountId}) bank details`);
+            res.status(201).json(response)
+        }catch(e){
+            next(e);
+        }
+    });
 
-    res.status(200).json([{ id: 1 }])
-});
+    app.post("/moneymade-users/sessions",(req, res) => {
+        console.log("Creating MoneyMade user session");
 
-app.get("/moneymade-users/accounts/:accountId/holdings",(req, res) => {
-    console.log(`Getting account (${req.params.accountId}) holdings`);
+        res.status(201).json({ id: 1, user: { id: 1 } })
+    });
 
-    res.status(200).json([{ id: 1 }])
-});
+    app.get("/moneymade-users/:userId/accounts",(req, res) => {
+        console.log(`Getting user (${req.params.userId}) accounts`);
 
-app.use("*", (req, res) => {
-    res.status(404).json({ message: 'Endpoint not found'})
-});
+        res.status(200).json([{ id: 1 }])
+    });
 
-module.exports.app = app;
+    app.get("/moneymade-users/accounts/:accountId/bank-details",(req, res) => {
+        console.log(`Getting account (${req.params.accountId}) bank details`);
+
+        res.status(200).json([{ id: 1 }])
+    });
+
+    app.get("/moneymade-users/accounts/:accountId/holdings",(req, res) => {
+        console.log(`Getting account (${req.params.accountId}) holdings`);
+
+        res.status(200).json([{ id: 1 }])
+    });
+
+    app.use("*", (req, res) => {
+        res.status(404).json({ message: 'Endpoint not found'})
+    });
+
+    return app;
+}
+
+module.exports.createServer = createServer;
