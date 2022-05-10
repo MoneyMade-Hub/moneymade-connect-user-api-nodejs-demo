@@ -1,11 +1,14 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const { initializeSDK } = require("./sdk");
 
 
 async function createServer() {
+    const sdk = await initializeSDK();
     const app = express();
 
-    const sdk = await initializeSDK();
+    app.use(bodyParser.json());
+
 
     app.post("/moneymade-users",async (req, res, next) => {
         try {
@@ -23,10 +26,14 @@ async function createServer() {
         }
     });
 
-    app.post("/moneymade-users/sessions",(req, res) => {
-        console.log("Creating MoneyMade user session");
+    app.post("/moneymade-users/sessions",async (req, res, next) => {
+        try {
+            console.log("Creating MoneyMade user session");
 
-        res.status(201).json({ id: 1, user: { id: 1 } })
+            res.status(201).json({ id: 1, user: { id: 1 } })
+        }catch (e) {
+            next(e);
+        }
     });
 
     app.get("/moneymade-users/:userId/accounts",(req, res) => {
