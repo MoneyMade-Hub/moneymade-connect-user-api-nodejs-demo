@@ -1,14 +1,39 @@
-const { app } = require("../src/server");
+const { createServer } = require("../src/server");
 const request = require("supertest");
+const sdkPackage = require("../src/sdk");
+
+jest.mock('../src/sdk');
 
 describe("App", () => {
-    const server = app;
+    let server;
+    let sdk;
+
+    beforeEach(async () => {
+        sdk = {
+            users: {
+                create: () => {}
+            }
+        };
+
+        jest.spyOn(sdkPackage, 'initializeSDK').mockResolvedValue(Promise.resolve(sdk));
+
+
+        server = await createServer();
+    })
 
     describe('POST /moneymade-users', () => {
         it("should create MoneyMade user", async () => {
+            const createResponse = {
+                id: '8b45a5c4-8eaa-4b52-9f4f-9d6d5cca105d',
+                client_user_id: 'moneymade_18n10b74n',
+                accounts: []
+            };
+
+            jest.spyOn(sdk.users, 'create').mockResolvedValueOnce(createResponse);
+
             const { body } = await request(server).post("/moneymade-users").expect(201);
 
-            expect(body).toEqual({ id: 1 });
+            expect(body).toEqual(createResponse);
         });
     });
 
