@@ -43,4 +43,12 @@ describe("App", () => {
             expect(body).toEqual([{ id: 1 }]);
         });
     });
+
+    describe('Not found', () => {
+        it("should return not found error", async () => {
+            const { body } = await request(server).get("/not-found").expect(404);
+
+            expect(body).toEqual({ message: "Endpoint not found" });
+        });
+    });
 })
