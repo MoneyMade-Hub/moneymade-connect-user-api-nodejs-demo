@@ -1,4 +1,4 @@
-const { createServer } = require("../src/server");
+const { createServer, handleError } = require("../src/server");
 const request = require("supertest");
 const sdkPackage = require("../src/sdk");
 const { randomUUID, randomInt } = require("crypto");
@@ -152,7 +152,7 @@ describe("App", () => {
                 "balance":"0",
                 "type":"cryptocurrency",
                 "fiat_balance":0,
-                "balance_updated_at":new Date(),
+                "balance_updated_at":new Date().toISOString(),
             }));
             const userAccountResponse = {
                 "id":accountId,
@@ -275,6 +275,47 @@ describe("App", () => {
             const { body } = await request(server).get("/not-found").expect(404);
 
             expect(body).toEqual({ message: "Endpoint not found" });
+        });
+    });
+
+    describe('handleError', () => {
+        it("should send internal server error if error is not from axios", async () => {
+            const error = new Error();
+            const jsonFn = jest.fn();
+            const statusFn = jest.fn(() => ({ json: jsonFn }));
+
+            handleError(error, undefined, { status: statusFn }, jest.fn());
+
+            expect(statusFn).toBeCalledTimes(1);
+            expect(statusFn).toBeCalledWith(500);
+            expect(jsonFn).toBeCalledTimes(1);
+            expect(jsonFn).toBeCalledWith({ message: 'Internal server error' });
+        });
+
+        it("should send internal server error if error is from axios with response error message", async () => {
+            const error = makeAxiosError(400, 'Could not find user');
+            const jsonFn = jest.fn();
+            const statusFn = jest.fn(() => ({ json: jsonFn }));
+
+            handleError(error, undefined, { status: statusFn }, jest.fn());
+
+            expect(statusFn).toBeCalledTimes(1);
+            expect(statusFn).toBeCalledWith(400);
+            expect(jsonFn).toBeCalledTimes(1);
+            expect(jsonFn).toBeCalledWith({ message: 'Could not find user' });
+        });
+
+        it("should send internal server error if error is from axios without response", async () => {
+            const error = makeAxiosError();
+            const jsonFn = jest.fn();
+            const statusFn = jest.fn(() => ({ json: jsonFn }));
+
+            handleError(error, undefined, { status: statusFn }, jest.fn());
+
+            expect(statusFn).toBeCalledTimes(1);
+            expect(statusFn).toBeCalledWith(500);
+            expect(jsonFn).toBeCalledTimes(1);
+            expect(jsonFn).toBeCalledWith({ message: 'Internal server error' });
         });
     });
 })
