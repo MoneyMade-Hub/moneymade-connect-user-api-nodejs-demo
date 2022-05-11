@@ -43,6 +43,17 @@ describe("App", () => {
             expect(sdk.users.create).toBeCalledTimes(1);
             expect(sdk.users.create).toBeCalledWith({"client_user_id": clientUserId, "email": clientUserEmail});
         });
+
+        it("should return error if client_user_id is not present in body", async () => {
+            jest.spyOn(sdk.users, 'create').mockImplementation();
+
+            const { body } = await request(server).post("/moneymade-users").expect(400);
+
+            expect(body).toEqual({
+                message: 'client_user_id must be present'
+            });
+            expect(sdk.users.create).not.toBeCalled();
+        });
     });
 
     describe('POST /moneymade-users/sessions', () => {

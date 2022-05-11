@@ -17,6 +17,10 @@ async function createServer() {
 
             const { email, client_user_id } = req.body;
 
+            if(!client_user_id) {
+                return res.status(400).json({ message: 'client_user_id must be present' });
+            }
+
             const response = await sdk.users.create({
                 email,
                 client_user_id,
