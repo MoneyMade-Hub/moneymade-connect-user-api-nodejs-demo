@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const axios = require("axios");
 const { initializeSDK } = require("./sdk");
 
 
@@ -14,11 +15,12 @@ async function createServer() {
         try {
             console.log("Creating MoneyMade user");
 
-            const response = await sdk.users.create({
-                email: 'rostyk@moneymade.io',
-                client_user_id: 'rostyk_moneymade_io'
-            }).catch(console.log);
+            const { email, client_user_id } = req.body;
 
+            const response = await sdk.users.create({
+                email,
+                client_user_id,
+            });
 
             res.status(201).json(response)
         }catch(e){
