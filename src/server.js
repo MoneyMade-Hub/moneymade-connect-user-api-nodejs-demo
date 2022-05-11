@@ -56,9 +56,11 @@ async function createServer () {
 
   app.get('/moneymade-users/:userId/accounts', async (req, res, next) => {
     try {
-      console.log(`Getting user (${req.params.userId}) accounts`);
+      const { userId } = req.params;
 
-      const user = await sdk.users.getOne(req.params.userId);
+      console.log(`Getting user (${userId}) accounts`);
+
+      const user = await sdk.users.getOne(userId);
 
       res.status(200).json(user.accounts);
     } catch (e) {
@@ -94,9 +96,9 @@ async function createServer () {
 
   app.get('/moneymade-users/accounts/:accountId/bank-details', async (req, res, next) => {
     try {
-      console.log(`Getting account (${req.params.accountId}) bank details`);
-
       const { accountId } = req.params;
+
+      console.log(`Getting account (${accountId}) bank details`);
 
       const bankDetails = await sdk.accounts.getBankDetails(accountId);
 
@@ -112,9 +114,9 @@ async function createServer () {
 
   app.get('/moneymade-users/accounts/:accountId/holdings', async (req, res, next) => {
     try {
-      console.log(`Getting account (${req.params.accountId}) holdings`);
-
       const { accountId } = req.params;
+
+      console.log(`Getting account (${accountId}) holdings`);
 
       const data = await sdk.accounts.getHoldings(accountId);
 
