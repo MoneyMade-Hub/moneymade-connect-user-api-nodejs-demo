@@ -2,6 +2,7 @@ const { createServer } = require("../src/server");
 const request = require("supertest");
 const sdkPackage = require("../src/sdk");
 const { randomUUID } = require("crypto");
+const { makeAxiosError } = require("./utils");
 
 jest.mock('../src/sdk');
 
@@ -12,7 +13,8 @@ describe("App", () => {
     beforeEach(async () => {
         sdk = {
             users: {
-                create: () => {}
+                create: jest.fn(),
+                createSession: jest.fn()
             }
         };
 
@@ -58,9 +60,34 @@ describe("App", () => {
 
     describe('POST /moneymade-users/sessions', () => {
         it("should create user session", async () => {
-            const { body } = await request(server).post("/moneymade-users/sessions").expect(201);
+            const token = "mmc-production-50f463d65fe95a7fc86c59bc2cdb760b6a91f3f1c8a4a70607c4c86cf59c260b9186fa7938cde29fc5675f6f795631e6dec2";
+            const expiresAt = new Date("2022-05-11T09:03:06.155Z");
+            const userId = randomUUID();
 
-            expect(body).toEqual({ id: 1, user: { id: 1 } });
+            jest.spyOn(sdk.users, 'createSession').mockResolvedValueOnce(Promise.resolve({
+                token,
+                expires_at: expiresAt.toISOString(),
+            }));
+
+            const { body } = await request(server).post("/moneymade-users/sessions").send({
+                user_id: userId,
+            }).expect(201);
+
+            expect(body).toEqual({ token });
+            expect(sdk.users.createSession).toBeCalledWith(userId);
+        });
+
+        it("should return error if user is not found", async () => {
+            const error = makeAxiosError(400, 'User not found!');
+            const userId = randomUUID();
+
+            jest.spyOn(sdk.users, 'createSession').mockImplementation(() => Promise.reject(error));
+
+            const { body } = await request(server).post("/moneymade-users/sessions").send({
+                user_id: userId,
+            }).expect(400);
+
+            expect(body).toEqual({ message: 'User not found' });
         });
     });
 
