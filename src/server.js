@@ -48,7 +48,7 @@ async function createServer() {
                 token
             })
         }catch (e) {
-            if(axios.isAxiosError(e) && e.response.data?.message === 'User not found!') {
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
                 return res.status(400).json({ message: 'User not found' });
             }
 
@@ -62,10 +62,22 @@ async function createServer() {
         res.status(200).json([{ id: 1 }])
     });
 
-    app.get("/moneymade-users/accounts/:accountId/bank-details",(req, res) => {
-        console.log(`Getting account (${req.params.accountId}) bank details`);
+    app.get("/moneymade-users/accounts/:accountId/bank-details", async (req, res, next) => {
+        try {
+            console.log(`Getting account (${req.params.accountId}) bank details`);
 
-        res.status(200).json([{ id: 1 }])
+            const { accountId } = req.params;
+
+            const bankDetails = await sdk.accounts.getBankDetails(accountId);
+
+            res.status(200).json(bankDetails)
+        }catch(e) {
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+                return res.status(400).json({ message: 'Account not found' });
+            }
+
+            next(e);
+        }
     });
 
     app.get("/moneymade-users/accounts/:accountId/holdings",(req, res) => {
@@ -80,10 +92,10 @@ async function createServer() {
 
     app.use((error, req, res, next) => {
         if(axios.isAxiosError(error)) {
-            console.log("Received axios error", {
+            console.log("Received axios error", error.response ? {
                 data: error.response.data,
                 status: error.response.status
-            })
+            } : error);
         } else {
             console.log("Received unknown error", error);
         }
