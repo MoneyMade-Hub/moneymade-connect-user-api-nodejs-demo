@@ -36,8 +36,22 @@ async function createServer() {
         try {
             console.log("Creating MoneyMade user session");
 
-            res.status(201).json({ id: 1, user: { id: 1 } })
+            const { user_id } = req.body;
+
+            if(!user_id) {
+                return res.status(400).json({ message: 'user_id must be present' });
+            }
+
+            const { token } = await sdk.users.createSession(user_id);
+
+            res.status(201).json({
+                token
+            })
         }catch (e) {
+            if(axios.isAxiosError(e) && e.response.data?.message === 'User not found!') {
+                return res.status(400).json({ message: 'User not found' });
+            }
+
             next(e);
         }
     });
