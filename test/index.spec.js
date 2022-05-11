@@ -1,7 +1,7 @@
 const { createServer } = require("../src/server");
 const request = require("supertest");
 const sdkPackage = require("../src/sdk");
-const { randomUUID } = require("crypto");
+const { randomUUID, randomInt } = require("crypto");
 const { makeAxiosError } = require("./utils");
 
 jest.mock('../src/sdk');
@@ -13,6 +13,7 @@ describe("App", () => {
     beforeEach(async () => {
         sdk = {
             users: {
+                getOne: jest.fn(),
                 create: jest.fn(),
                 createSession: jest.fn(),
             },
@@ -97,9 +98,44 @@ describe("App", () => {
 
     describe('GET /moneymade-users/:userId/accounts', () => {
         it("should create return user accounts", async () => {
-            const { body } = await request(server).get("/moneymade-users/:userId/accounts").expect(200);
+            const userId = randomUUID();
+            const accounts = Array(50).fill(1).map(() => ({
+                "id": randomUUID(),
+                "provider":{
+                    "id": randomInt(1, 9999999),
+                    "name": "Provider",
+                    "slug": "provider",
+                    "strategy": "keys",
+                    "logo":"https://assets.moneymade.io/images/app/MoneyMade%20Logo%20-%20Black.svg"
+                }
+            }));
 
-            expect(body).toEqual([{ id: 1 }]);
+            const userResponse = {
+                id: randomUUID(),
+                client_user_id: 'moneymade_18n10b74n',
+                accounts
+            };
+
+            jest.spyOn(sdk.users, 'getOne').mockResolvedValueOnce(Promise.resolve(userResponse));
+
+            const { body } = await request(server).get(`/moneymade-users/${userId}/accounts`).expect(200);
+
+            expect(body).toEqual(accounts);
+            expect(sdk.users.getOne).toBeCalledTimes(1)
+            expect(sdk.users.getOne).toBeCalledWith(userId)
+        });
+
+        it("should return error if user is not found", async () => {
+            const userId = randomUUID();
+            const error = makeAxiosError(400, 'User not found!');
+
+            jest.spyOn(sdk.accounts, 'getBankDetails').mockImplementationOnce(() => Promise.reject(error));
+
+            jest.spyOn(sdk.users, 'getOne').mockImplementationOnce(() => Promise.reject(error));
+
+            const { body } = await request(server).get(`/moneymade-users/${userId}/accounts`).expect(400);
+
+            expect(body).toEqual({ message: 'User not found' });
         });
     });
 
