@@ -1,6 +1,7 @@
 const { createServer } = require("../src/server");
 const request = require("supertest");
 const sdkPackage = require("../src/sdk");
+const { randomUUID } = require("crypto");
 
 jest.mock('../src/sdk');
 
@@ -23,17 +24,24 @@ describe("App", () => {
 
     describe('POST /moneymade-users', () => {
         it("should create MoneyMade user", async () => {
+            const clientUserId = 'moneymade_18n10b74n';
+            const clientUserEmail = 'email@moneymade.io';
             const createResponse = {
-                id: '8b45a5c4-8eaa-4b52-9f4f-9d6d5cca105d',
-                client_user_id: 'moneymade_18n10b74n',
+                id: randomUUID(),
+                client_user_id: clientUserId,
                 accounts: []
             };
 
             jest.spyOn(sdk.users, 'create').mockResolvedValueOnce(createResponse);
 
-            const { body } = await request(server).post("/moneymade-users").expect(201);
+            const { body } = await request(server).post("/moneymade-users").send({
+                client_user_id: clientUserId,
+                email: clientUserEmail,
+            }).expect(201);
 
             expect(body).toEqual(createResponse);
+            expect(sdk.users.create).toBeCalledTimes(1);
+            expect(sdk.users.create).toBeCalledWith({"client_user_id": clientUserId, "email": clientUserEmail});
         });
     });
 
