@@ -1,161 +1,159 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const axios = require("axios");
-const { initializeSDK } = require("./sdk");
+const express = require('express');
+const bodyParser = require('body-parser');
+const axios = require('axios');
+const { initializeSDK } = require('./sdk');
 
+async function createServer () {
+  const sdk = await initializeSDK();
+  const app = express();
 
-async function createServer() {
-    const sdk = await initializeSDK();
-    const app = express();
+  app.use(bodyParser.json());
 
-    app.use(bodyParser.json());
+  app.post('/moneymade-users', async (req, res, next) => {
+    try {
+      console.log('Creating MoneyMade user');
 
+      const { email, client_user_id } = req.body;
 
-    app.post("/moneymade-users",async (req, res, next) => {
-        try {
-            console.log("Creating MoneyMade user");
+      if (!client_user_id) {
+        return res.status(400).json({ message: 'client_user_id must be present' });
+      }
 
-            const { email, client_user_id } = req.body;
+      const response = await sdk.users.create({
+        email,
+        client_user_id
+      });
 
-            if(!client_user_id) {
-                return res.status(400).json({ message: 'client_user_id must be present' });
-            }
+      res.status(201).json(response);
+    } catch (e) {
+      next(e);
+    }
+  });
 
-            const response = await sdk.users.create({
-                email,
-                client_user_id,
-            });
+  app.post('/moneymade-users/sessions', async (req, res, next) => {
+    try {
+      console.log('Creating MoneyMade user session');
 
-            res.status(201).json(response)
-        }catch(e){
-            next(e);
-        }
-    });
+      const { user_id } = req.body;
 
-    app.post("/moneymade-users/sessions",async (req, res, next) => {
-        try {
-            console.log("Creating MoneyMade user session");
+      if (!user_id) {
+        return res.status(400).json({ message: 'user_id must be present' });
+      }
 
-            const { user_id } = req.body;
+      const { token } = await sdk.users.createSession(user_id);
 
-            if(!user_id) {
-                return res.status(400).json({ message: 'user_id must be present' });
-            }
+      res.status(201).json({
+        token
+      });
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+        return res.status(400).json({ message: 'User not found' });
+      }
 
-            const { token } = await sdk.users.createSession(user_id);
+      next(e);
+    }
+  });
 
-            res.status(201).json({
-                token
-            })
-        }catch (e) {
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
-                return res.status(400).json({ message: 'User not found' });
-            }
+  app.get('/moneymade-users/:userId/accounts', async (req, res, next) => {
+    try {
+      console.log(`Getting user (${req.params.userId}) accounts`);
 
-            next(e);
-        }
-    });
+      const user = await sdk.users.getOne(req.params.userId);
 
-    app.get("/moneymade-users/:userId/accounts", async (req, res, next) => {
-        try {
-            console.log(`Getting user (${req.params.userId}) accounts`);
+      res.status(200).json(user.accounts);
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+        return res.status(400).json({ message: 'User not found' });
+      }
 
-            const user = await sdk.users.getOne(req.params.userId);
+      next(e);
+    }
+  });
 
-            res.status(200).json(user.accounts)
-        }catch(e) {
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
-                return res.status(400).json({ message: 'User not found' });
-            }
+  app.get('/moneymade-users/:userId/accounts/:accountId', async (req, res, next) => {
+    try {
+      const { userId, accountId } = req.params;
 
-            next(e);
-        }
-    });
+      console.log(`Getting user's (${userId}) account (${accountId}) details`);
 
-    app.get("/moneymade-users/:userId/accounts/:accountId", async (req, res, next) => {
-        try {
-            const { userId, accountId } = req.params;
+      const account = await sdk.users.getAccount({ userId, accountId });
 
-            console.log(`Getting user's (${userId}) account (${accountId}) details`);
+      res.status(200).json(account);
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+        return res.status(400).json({ message: 'User not found' });
+      }
 
-            const account = await sdk.users.getAccount( { userId, accountId });
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+        return res.status(400).json({ message: 'Account not found' });
+      }
 
-            res.status(200).json(account)
-        }catch(e) {
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
-                return res.status(400).json({ message: 'User not found' });
-            }
+      next(e);
+    }
+  });
 
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
-                return res.status(400).json({ message: 'Account not found' });
-            }
+  app.get('/moneymade-users/accounts/:accountId/bank-details', async (req, res, next) => {
+    try {
+      console.log(`Getting account (${req.params.accountId}) bank details`);
 
-            next(e);
-        }
-    });
+      const { accountId } = req.params;
 
-    app.get("/moneymade-users/accounts/:accountId/bank-details", async (req, res, next) => {
-        try {
-            console.log(`Getting account (${req.params.accountId}) bank details`);
+      const bankDetails = await sdk.accounts.getBankDetails(accountId);
 
-            const { accountId } = req.params;
+      res.status(200).json(bankDetails);
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+        return res.status(400).json({ message: 'Account not found' });
+      }
 
-            const bankDetails = await sdk.accounts.getBankDetails(accountId);
+      next(e);
+    }
+  });
 
-            res.status(200).json(bankDetails)
-        }catch(e) {
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
-                return res.status(400).json({ message: 'Account not found' });
-            }
+  app.get('/moneymade-users/accounts/:accountId/holdings', async (req, res, next) => {
+    try {
+      console.log(`Getting account (${req.params.accountId}) holdings`);
 
-            next(e);
-        }
-    });
+      const { accountId } = req.params;
 
-    app.get("/moneymade-users/accounts/:accountId/holdings", async (req, res, next) => {
-        try {
-            console.log(`Getting account (${req.params.accountId}) holdings`);
+      const data = await sdk.accounts.getHoldings(accountId);
 
-            const { accountId } = req.params;
+      res.status(200).json(data);
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+        return res.status(400).json({ message: 'Account not found' });
+      }
 
-            const data = await sdk.accounts.getHoldings(accountId);
+      next(e);
+    }
+  });
 
-            res.status(200).json(data);
-        } catch (e) {
-            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
-                return res.status(400).json({ message: 'Account not found' });
-            }
+  app.use('*', (req, res) => {
+    res.status(404).json({ message: 'Endpoint not found' });
+  });
 
-            next(e);
-        }
-    });
+  app.use(exports.handleError);
 
-    app.use("*", (req, res) => {
-        res.status(404).json({ message: 'Endpoint not found'})
-    });
-
-    app.use(exports.handleError);
-
-    return app;
+  return app;
 }
 
 module.exports.handleError = function (error, req, res, next) {
-    if(axios.isAxiosError(error)) {
-        if(error.response?.data?.message && error.response.status < 500) {
-            console.log("Unhandled http error", {
-                data: error.response.data,
-                status: error.response.status
-            });
+  if (axios.isAxiosError(error)) {
+    if (error.response?.data?.message && error.response.status < 500) {
+      console.log('Unhandled http error', {
+        data: error.response.data,
+        status: error.response.status
+      });
 
-            return res.status(error.response.status).json({ message: error.response.data.message });
-        }
-
-        console.log("Unhandled http error", error);
-    } else {
-        console.log("Unhandled unknown error", error);
+      return res.status(error.response.status).json({ message: error.response.data.message });
     }
 
-    res.status(500).json({ message: "Internal server error" });
-}
+    console.log('Unhandled http error', error);
+  } else {
+    console.log('Unhandled unknown error', error);
+  }
+
+  res.status(500).json({ message: 'Internal server error' });
+};
 
 module.exports.createServer = createServer;
