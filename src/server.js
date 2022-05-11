@@ -80,10 +80,22 @@ async function createServer() {
         }
     });
 
-    app.get("/moneymade-users/accounts/:accountId/holdings",(req, res) => {
-        console.log(`Getting account (${req.params.accountId}) holdings`);
+    app.get("/moneymade-users/accounts/:accountId/holdings", async (req, res, next) => {
+        try {
+            console.log(`Getting account (${req.params.accountId}) holdings`);
 
-        res.status(200).json([{ id: 1 }])
+            const { accountId } = req.params;
+
+            const data = await sdk.accounts.getHoldings(accountId);
+
+            res.status(200).json(data);
+        } catch (e) {
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+                return res.status(400).json({ message: 'Account not found' });
+            }
+
+            next(e);
+        }
     });
 
     app.use("*", (req, res) => {
