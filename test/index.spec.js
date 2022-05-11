@@ -13,8 +13,9 @@ describe("App", () => {
     beforeEach(async () => {
         sdk = {
             users: {
-                getOne: jest.fn(),
                 create: jest.fn(),
+                getOne: jest.fn(),
+                getAccount: jest.fn(),
                 createSession: jest.fn(),
             },
             accounts: {
@@ -97,7 +98,7 @@ describe("App", () => {
     });
 
     describe('GET /moneymade-users/:userId/accounts', () => {
-        it("should create return user accounts", async () => {
+        it("should return user accounts", async () => {
             const userId = randomUUID();
             const accounts = Array(50).fill(1).map(() => ({
                 "id": randomUUID(),
@@ -136,6 +137,77 @@ describe("App", () => {
             const { body } = await request(server).get(`/moneymade-users/${userId}/accounts`).expect(400);
 
             expect(body).toEqual({ message: 'User not found' });
+        });
+    });
+
+    describe('GET /moneymade-users/:userId/accounts/:accountId', () => {
+        it("should return user's account", async () => {
+            const userId = randomUUID();
+            const accountId = randomUUID();
+            const subaccounts = Array(50).fill(1).map(() => ({
+                "id":randomUUID(),
+                "account_id":accountId,
+                "name":"Bitcoin",
+                "currency":"BTC",
+                "balance":"0",
+                "type":"cryptocurrency",
+                "fiat_balance":0,
+                "balance_updated_at":new Date(),
+            }));
+            const userAccountResponse = {
+                "id":accountId,
+                "user_id":userId,
+                "verification_status":"pending",
+                "scopes":["accounts:balances"],
+                "provider":{
+                    "id":1,
+                    "name":"MoneyMade",
+                    "slug":"moneymade",
+                    "strategy":"oauth",
+                    "connector":"moneymade",
+                    "type":"crypto",
+                    "description":"MoneyMade description",
+                    "website":"https://www.moneymade.io",
+                    "logo":"https://assets.moneymade.io/images/app/MoneyMade%20Logo%20-%20Black.svg",
+                    "scopes":[
+                        "accounts:balances",
+                        "accounts:banking"
+                    ]
+                },
+                "subaccounts": subaccounts
+            };
+
+            jest.spyOn(sdk.users, 'getAccount').mockResolvedValueOnce(Promise.resolve(userAccountResponse));
+
+            const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(200);
+
+            expect(body).toEqual(userAccountResponse);
+            expect(sdk.users.getAccount).toBeCalledTimes(1)
+            expect(sdk.users.getAccount).toBeCalledWith({ userId, accountId })
+        });
+
+        it("should return error if user is not found", async () => {
+            const userId = randomUUID();
+            const accountId = randomUUID();
+            const error = makeAxiosError(400, 'User not found!');
+
+            jest.spyOn(sdk.users, 'getAccount').mockImplementationOnce(() => Promise.reject(error));
+
+            const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(400);
+
+            expect(body).toEqual({ message: 'User not found' });
+        });
+
+        it("should return error if account is not found", async () => {
+            const userId = randomUUID();
+            const accountId = randomUUID();
+            const error = makeAxiosError(400, 'Account not found');
+
+            jest.spyOn(sdk.users, 'getAccount').mockImplementationOnce(() => Promise.reject(error));
+
+            const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(400);
+
+            expect(body).toEqual({ message: 'Account not found' });
         });
     });
 
