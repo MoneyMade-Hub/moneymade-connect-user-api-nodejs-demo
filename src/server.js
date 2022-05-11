@@ -56,10 +56,20 @@ async function createServer() {
         }
     });
 
-    app.get("/moneymade-users/:userId/accounts",(req, res) => {
-        console.log(`Getting user (${req.params.userId}) accounts`);
+    app.get("/moneymade-users/:userId/accounts", async (req, res, next) => {
+        try {
+            console.log(`Getting user (${req.params.userId}) accounts`);
 
-        res.status(200).json([{ id: 1 }])
+            const user = await sdk.users.getOne(req.params.userId);
+
+            res.status(200).json(user.accounts)
+        }catch(e) {
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+                return res.status(400).json({ message: 'User not found' });
+            }
+
+            next(e);
+        }
     });
 
     app.get("/moneymade-users/accounts/:accountId/bank-details", async (req, res, next) => {
