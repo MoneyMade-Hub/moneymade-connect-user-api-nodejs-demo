@@ -15,6 +15,9 @@ describe("App", () => {
             users: {
                 create: jest.fn(),
                 createSession: jest.fn()
+            },
+            accounts: {
+                getBankDetails: jest.fn()
             }
         };
 
@@ -81,7 +84,7 @@ describe("App", () => {
             const error = makeAxiosError(400, 'User not found!');
             const userId = randomUUID();
 
-            jest.spyOn(sdk.users, 'createSession').mockImplementation(() => Promise.reject(error));
+            jest.spyOn(sdk.users, 'createSession').mockImplementationOnce(() => Promise.reject(error));
 
             const { body } = await request(server).post("/moneymade-users/sessions").send({
                 user_id: userId,
@@ -92,7 +95,7 @@ describe("App", () => {
     });
 
     describe('GET /moneymade-users/:userId/accounts', () => {
-        it("should create user session", async () => {
+        it("should create return user accounts", async () => {
             const { body } = await request(server).get("/moneymade-users/:userId/accounts").expect(200);
 
             expect(body).toEqual([{ id: 1 }]);
@@ -100,10 +103,33 @@ describe("App", () => {
     });
 
     describe('GET /moneymade-users/accounts/:accountId/bank-details', () => {
-        it("should create user session", async () => {
+        it("should return account bank details", async () => {
+            const bankDetailsResponse = [
+                {
+                    account_number: '000123456789',
+                    holder_name: 'MoneyMade User',
+                    routing_number: '110000000',
+                    type: 'individual',
+                    balance: null,
+                    source: 'manual'
+                }
+            ];
+
+            jest.spyOn(sdk.accounts, 'getBankDetails').mockResolvedValueOnce(Promise.resolve(bankDetailsResponse))
+
             const { body } = await request(server).get("/moneymade-users/accounts/:accountId/bank-details").expect(200);
 
-            expect(body).toEqual([{ id: 1 }]);
+            expect(body).toEqual(bankDetailsResponse);
+        });
+
+        it("should return error if account is not found", async () => {
+            const error = makeAxiosError(400, 'Account not found');
+
+            jest.spyOn(sdk.accounts, 'getBankDetails').mockImplementationOnce(() => Promise.reject(error));
+
+            const { body } = await request(server).get("/moneymade-users/accounts/:accountId/bank-details").expect(400);
+
+            expect(body).toEqual({ message: 'Account not found' });
         });
     });
 
