@@ -134,20 +134,28 @@ async function createServer() {
         res.status(404).json({ message: 'Endpoint not found'})
     });
 
-    app.use((error, req, res, next) => {
-        if(axios.isAxiosError(error)) {
-            console.log("Received axios error", error.response ? {
-                data: error.response.data,
-                status: error.response.status
-            } : error);
-        } else {
-            console.log("Received unknown error", error);
-        }
-
-        res.status(500).json({ message: "Internal server error "});
-    })
+    app.use(exports.handleError);
 
     return app;
+}
+
+module.exports.handleError = function (error, req, res, next) {
+    if(axios.isAxiosError(error)) {
+        if(error.response?.data?.message && error.response.status < 500) {
+            console.log("Unhandled http error", {
+                data: error.response.data,
+                status: error.response.status
+            });
+
+            return res.status(error.response.status).json({ message: error.response.data.message });
+        }
+
+        console.log("Unhandled http error", error);
+    } else {
+        console.log("Unhandled unknown error", error);
+    }
+
+    res.status(500).json({ message: "Internal server error" });
 }
 
 module.exports.createServer = createServer;
