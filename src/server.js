@@ -72,6 +72,28 @@ async function createServer() {
         }
     });
 
+    app.get("/moneymade-users/:userId/accounts/:accountId", async (req, res, next) => {
+        try {
+            const { userId, accountId } = req.params;
+
+            console.log(`Getting user's (${userId}) account (${accountId}) details`);
+
+            const account = await sdk.users.getAccount( { userId, accountId });
+
+            res.status(200).json(account)
+        }catch(e) {
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+                return res.status(400).json({ message: 'User not found' });
+            }
+
+            if(axios.isAxiosError(e) && e.response?.data?.message === 'Account not found') {
+                return res.status(400).json({ message: 'Account not found' });
+            }
+
+            next(e);
+        }
+    });
+
     app.get("/moneymade-users/accounts/:accountId/bank-details", async (req, res, next) => {
         try {
             console.log(`Getting account (${req.params.accountId}) bank details`);
