@@ -34,6 +34,29 @@ describe('App', () => {
     server = await createServer();
   });
 
+  describe('should return Unauthorized error', () => {
+    it('if missed api-key header', async () => {
+      const { body } = await request(server)
+        .post('/moneymade-users')
+        .expect(401);
+
+      expect(body).toEqual({
+        message: 'Missed api-key header'
+      });
+    });
+
+    it('if missed api-key header', async () => {
+      const { body } = await request(server)
+        .post('/moneymade-users')
+        .set('api-key', 'api-key')
+        .expect(401);
+
+      expect(body).toEqual({
+        message: 'Missed api-secret header'
+      });
+    });
+  });
+
   describe('POST /moneymade-users', () => {
     it('should create MoneyMade user', async () => {
       const clientUserId = 'moneymade_18n10b74n';
