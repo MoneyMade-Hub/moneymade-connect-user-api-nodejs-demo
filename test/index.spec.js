@@ -6,6 +6,11 @@ const { makeAxiosError } = require('./utils');
 
 jest.mock('../src/sdk');
 
+const defaultHeaders = {
+  'api-key': 'api-key',
+  'api-secret': 'api-secret'
+};
+
 describe('App', () => {
   let server;
   let sdk;
@@ -41,10 +46,14 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'create').mockResolvedValueOnce(createResponse);
 
-      const { body } = await request(server).post('/moneymade-users').send({
-        client_user_id: clientUserId,
-        email: clientUserEmail
-      }).expect(201);
+      const { body } = await request(server)
+        .post('/moneymade-users')
+        .send({
+          client_user_id: clientUserId,
+          email: clientUserEmail
+        })
+        .set(defaultHeaders)
+        .expect(201);
 
       expect(body).toEqual(createResponse);
       expect(sdk.users.create).toBeCalledTimes(1);
@@ -54,7 +63,10 @@ describe('App', () => {
     it('should return error if client_user_id is not present in body', async () => {
       jest.spyOn(sdk.users, 'create').mockImplementation();
 
-      const { body } = await request(server).post('/moneymade-users').expect(400);
+      const { body } = await request(server)
+        .post('/moneymade-users')
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({
         message: 'client_user_id must be present'
@@ -74,9 +86,13 @@ describe('App', () => {
         expires_at: expiresAt.toISOString()
       }));
 
-      const { body } = await request(server).post('/moneymade-users/sessions').send({
-        user_id: userId
-      }).expect(201);
+      const { body } = await request(server)
+        .post('/moneymade-users/sessions')
+        .send({
+          user_id: userId
+        })
+        .set(defaultHeaders)
+        .expect(201);
 
       expect(body).toEqual({ token });
       expect(sdk.users.createSession).toBeCalledWith(userId);
@@ -88,9 +104,13 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'createSession').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).post('/moneymade-users/sessions').send({
-        user_id: userId
-      }).expect(400);
+      const { body } = await request(server)
+        .post('/moneymade-users/sessions')
+        .send({
+          user_id: userId
+        })
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'User not found' });
     });
@@ -118,7 +138,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'getOne').mockResolvedValueOnce(Promise.resolve(userResponse));
 
-      const { body } = await request(server).get(`/moneymade-users/${userId}/accounts`).expect(200);
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}/accounts`)
+        .set(defaultHeaders)
+        .expect(200);
 
       expect(body).toEqual(accounts);
       expect(sdk.users.getOne).toBeCalledTimes(1);
@@ -133,7 +156,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'getOne').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).get(`/moneymade-users/${userId}/accounts`).expect(400);
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}/accounts`)
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'User not found' });
     });
@@ -178,7 +204,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'getAccount').mockResolvedValueOnce(Promise.resolve(userAccountResponse));
 
-      const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(200);
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}/accounts/${accountId}`)
+        .set(defaultHeaders)
+        .expect(200);
 
       expect(body).toEqual(userAccountResponse);
       expect(sdk.users.getAccount).toBeCalledTimes(1);
@@ -192,7 +221,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'getAccount').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(400);
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}/accounts/${accountId}`)
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'User not found' });
     });
@@ -204,7 +236,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.users, 'getAccount').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).get(`/moneymade-users/${userId}/accounts/${accountId}`).expect(400);
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}/accounts/${accountId}`)
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'Account not found' });
     });
@@ -226,7 +261,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.accounts, 'getBankDetails').mockResolvedValueOnce(Promise.resolve(bankDetailsResponse));
 
-      const { body } = await request(server).get(`/moneymade-users/accounts/${accountId}/bank-details`).expect(200);
+      const { body } = await request(server)
+        .get(`/moneymade-users/accounts/${accountId}/bank-details`)
+        .set(defaultHeaders)
+        .expect(200);
 
       expect(body).toEqual(bankDetailsResponse);
     });
@@ -237,7 +275,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.accounts, 'getBankDetails').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).get(`/moneymade-users/accounts/${accountId}/bank-details`).expect(400);
+      const { body } = await request(server)
+        .get(`/moneymade-users/accounts/${accountId}/bank-details`)
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'Account not found' });
     });
@@ -250,7 +291,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.accounts, 'getHoldings').mockResolvedValueOnce(holdingsResponse);
 
-      const { body } = await request(server).get(`/moneymade-users/accounts/${accountId}/holdings`).expect(200);
+      const { body } = await request(server)
+        .get(`/moneymade-users/accounts/${accountId}/holdings`)
+        .set(defaultHeaders)
+        .expect(200);
 
       expect(body).toEqual(holdingsResponse);
       expect(sdk.accounts.getHoldings).toBeCalledTimes(1);
@@ -263,7 +307,10 @@ describe('App', () => {
 
       jest.spyOn(sdk.accounts, 'getHoldings').mockImplementationOnce(() => Promise.reject(error));
 
-      const { body } = await request(server).get(`/moneymade-users/accounts/${accountId}/holdings`).expect(400);
+      const { body } = await request(server)
+        .get(`/moneymade-users/accounts/${accountId}/holdings`)
+        .set(defaultHeaders)
+        .expect(400);
 
       expect(body).toEqual({ message: 'Account not found' });
     });
@@ -271,7 +318,10 @@ describe('App', () => {
 
   describe('Not found', () => {
     it('should return not found error', async () => {
-      const { body } = await request(server).get('/not-found').expect(404);
+      const { body } = await request(server)
+        .get('/not-found')
+        .set(defaultHeaders)
+        .expect(404);
 
       expect(body).toEqual({ message: 'Endpoint not found' });
     });
