@@ -139,6 +139,53 @@ describe('App', () => {
     });
   });
 
+  describe('GET /moneymade-users/:userId', () => {
+    it('should return user', async () => {
+      const userId = randomUUID();
+      const accounts = Array(50).fill(1).map(() => ({
+        id: randomUUID(),
+        provider: {
+          id: randomInt(1, 9999999),
+          name: 'Provider',
+          slug: 'provider',
+          strategy: 'keys',
+          logo: 'https://assets.moneymade.io/images/app/MoneyMade%20Logo%20-%20Black.svg'
+        }
+      }));
+
+      const userResponse = {
+        id: randomUUID(),
+        client_user_id: 'moneymade_18n10b74n',
+        accounts
+      };
+
+      jest.spyOn(sdk.users, 'getOne').mockResolvedValueOnce(Promise.resolve(userResponse));
+
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}`)
+        .set(defaultHeaders)
+        .expect(200);
+
+      expect(body).toEqual(userResponse);
+      expect(sdk.users.getOne).toBeCalledTimes(1);
+      expect(sdk.users.getOne).toBeCalledWith(userId);
+    });
+
+    it('should return error if user is not found', async () => {
+      const userId = randomUUID();
+      const error = makeAxiosError(400, 'User not found!');
+
+      jest.spyOn(sdk.users, 'getOne').mockImplementationOnce(() => Promise.reject(error));
+
+      const { body } = await request(server)
+        .get(`/moneymade-users/${userId}`)
+        .set(defaultHeaders)
+        .expect(400);
+
+      expect(body).toEqual({ message: 'User not found' });
+    });
+  });
+
   describe('GET /moneymade-users/:userId/accounts', () => {
     it('should return user accounts', async () => {
       const userId = randomUUID();

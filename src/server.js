@@ -1,12 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const cors = require('cors');
 
 const { initializeSDK } = require('./sdk');
 
 async function createServer () {
   const app = express();
 
+  app.use(cors());
   app.use(bodyParser.json());
 
   app.use((req, res, next) => {
@@ -60,6 +62,25 @@ async function createServer () {
       res.status(201).json({
         token
       });
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      next(e);
+    }
+  });
+
+  app.get('/moneymade-users/:userId', async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      console.log(`Getting user (${userId}) accounts`);
+
+      const sdk = await initializeSDK(req.headers);
+      const user = await sdk.users.getOne(userId);
+
+      res.status(200).json(user);
     } catch (e) {
       if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
         return res.status(400).json({ message: 'User not found' });
