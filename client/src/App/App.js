@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { MainButton, Container, Input, H3, P1, P3 } from '@moneymade/moneymade-ui'
-import axios from 'axios'
 
 import { createUserCall } from 'api/apiCalls'
 import { sortAsc, getField, isAllRequiredFields, getFieldProp } from 'utils/utils'
