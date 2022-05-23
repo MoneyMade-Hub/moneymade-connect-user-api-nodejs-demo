@@ -69,6 +69,25 @@ async function createServer () {
     }
   });
 
+  app.get('/moneymade-users/:userId', async (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      console.log(`Getting user (${userId}) accounts`);
+
+      const sdk = await initializeSDK(req.headers);
+      const user = await sdk.users.getOne(userId);
+
+      res.status(200).json(user);
+    } catch (e) {
+      if (axios.isAxiosError(e) && e.response?.data?.message === 'User not found!') {
+        return res.status(400).json({ message: 'User not found' });
+      }
+
+      next(e);
+    }
+  });
+
   app.get('/moneymade-users/:userId/accounts', async (req, res, next) => {
     try {
       const { userId } = req.params;
