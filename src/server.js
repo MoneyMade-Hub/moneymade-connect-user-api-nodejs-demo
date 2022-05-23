@@ -1,13 +1,25 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+
 const { initializeSDK } = require('./sdk');
 
 async function createServer () {
-  const sdk = await initializeSDK();
   const app = express();
 
   app.use(bodyParser.json());
+
+  app.use((req, res, next) => {
+    if (!req.headers['api-key']) {
+      return res.status(401).send({ message: 'Missed api-key header' });
+    }
+
+    if (!req.headers['api-secret']) {
+      return res.status(401).send({ message: 'Missed api-secret header' });
+    }
+
+    return next();
+  });
 
   app.post('/moneymade-users', async (req, res, next) => {
     try {
@@ -18,6 +30,8 @@ async function createServer () {
       if (!client_user_id) {
         return res.status(400).json({ message: 'client_user_id must be present' });
       }
+
+      const sdk = await initializeSDK(req.headers);
 
       const response = await sdk.users.create({
         email,
@@ -40,6 +54,7 @@ async function createServer () {
         return res.status(400).json({ message: 'user_id must be present' });
       }
 
+      const sdk = await initializeSDK(req.headers);
       const { token } = await sdk.users.createSession(user_id);
 
       res.status(201).json({
@@ -60,6 +75,7 @@ async function createServer () {
 
       console.log(`Getting user (${userId}) accounts`);
 
+      const sdk = await initializeSDK(req.headers);
       const user = await sdk.users.getOne(userId);
 
       res.status(200).json(user.accounts);
@@ -78,6 +94,7 @@ async function createServer () {
 
       console.log(`Getting user's (${userId}) account (${accountId}) details`);
 
+      const sdk = await initializeSDK(req.headers);
       const account = await sdk.users.getAccount({ userId, accountId });
 
       res.status(200).json(account);
@@ -100,6 +117,7 @@ async function createServer () {
 
       console.log(`Getting account (${accountId}) bank details`);
 
+      const sdk = await initializeSDK(req.headers);
       const bankDetails = await sdk.accounts.getBankDetails(accountId);
 
       res.status(200).json(bankDetails);
@@ -118,6 +136,7 @@ async function createServer () {
 
       console.log(`Getting account (${accountId}) holdings`);
 
+      const sdk = await initializeSDK(req.headers);
       const data = await sdk.accounts.getHoldings(accountId);
 
       res.status(200).json(data);
