@@ -1,12 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const cors = require('cors');
 
 const { initializeSDK } = require('./sdk');
 
 async function createServer () {
   const app = express();
 
+  app.use(cors());
   app.use(bodyParser.json());
 
   app.use((req, res, next) => {
