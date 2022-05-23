@@ -30,6 +30,24 @@ const INIT_FIELDS = [
     value: '',
     correct: false,
     type: 'text'
+  },
+  {
+    id: 5,
+    name: 'userId',
+    label: 'User Id',
+    value: '',
+    correct: false,
+    type: 'text',
+    hidden: true
+  },
+  {
+    id: 6,
+    name: 'token',
+    label: 'Token',
+    value: '',
+    correct: false,
+    type: 'text',
+    hidden: true
   }
 ]
 

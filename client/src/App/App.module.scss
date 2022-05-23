@@ -1,4 +1,5 @@
 @import 'scss/variables';
+@import 'scss/keyframes';
 
 body {
   .App {
@@ -20,6 +21,7 @@ body {
 
       .Desc {
         margin: 10px 0;
+        color: $color-black2;
       }
 
       .InitData {
@@ -40,8 +42,25 @@ body {
         }
       }
 
-      .CreateUserBtn {
+      .Btn {
         margin: 10px 0;
+      }
+
+      .Loader {
+        margin: 10px 0;
+      }
+
+      .Error {
+        color: $color-red5;
+
+        &.Show {
+          animation: fade 2s ease;
+          opacity: 1;
+        }
+
+        &.Hide {
+          opacity: 0;
+        }
       }
     }
   }

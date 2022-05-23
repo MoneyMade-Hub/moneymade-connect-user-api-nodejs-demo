@@ -9,30 +9,6 @@ const globalAxios = (apiKeys, apiSecret) => {
   return axios
 }
 
-const responseAxios = async instance => {
-  try {
-    const response = await instance()
-    const { data, status } = response
-
-    if (status >= 200 && status < 300) {
-      return {
-        success: true,
-        response: data
-      }
-    }
-    return {
-      success: false,
-      response: data
-    }
-  } catch (error) {
-    console.error(error)
-    return {
-      success: false,
-      response: { error }
-    }
-  }
-}
-
 // POST
 const createUserCall = async (apiKeys, apiSecret, clientUserId) => {
   try {
@@ -59,4 +35,52 @@ const createUserCall = async (apiKeys, apiSecret, clientUserId) => {
   }
 }
 
-export { createUserCall }
+const createUserSessionCall = async (apiKeys, apiSecret, userId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: CREATE_SESSION,
+      method: 'post',
+      data: {
+        user_id: userId
+      }
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
+// {{API_URL}}/moneymade-users/a9bc2d0a-4335-41c9-84af-6de7d1b66135/accounts
+const getUserAccountsCall = async (apiKeys, apiSecret, userId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: `${CREATE_USER}/${userId}${ACCOUNTS}`,
+      method: 'get'
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
+export { createUserCall, createUserSessionCall, getUserAccountsCall }
