@@ -1,0 +1,48 @@
+@import 'scss/variables';
+
+body {
+  .App {
+    margin: 30px 0;
+    text-align: center;
+
+    .Container {
+      display: flex;
+      padding-top: 20px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(10px + 2vmin);
+      color: $color-white;
+
+      .Title {
+        margin: 10px 0;
+      }
+
+      .Desc {
+        margin: 10px 0;
+      }
+
+      .InitData {
+        display: grid;
+        width: 100%;
+        padding: 8px 0;
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        .InputContainer {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        @media (min-width: $sm) {
+          grid-template-columns: 2fr 2fr;
+        }
+      }
+
+      .CreateUserBtn {
+        margin: 10px 0;
+      }
+    }
+  }
+}

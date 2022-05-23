@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "client": "npm start --prefix client",
+    "full-stack": "concurrently \"npm run start\" \"npm run client\"",
     "test": "DOTENV_CONFIG_PATH=.env.test jest",
     "lint": "eslint .",
     "lint:fix": "eslint --fix ."
@@ -34,6 +36,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
+    "concurrently": "^7.2.1",
     "eslint": "^8.15.0",
     "jest": "^28.1.0",
     "supertest": "^6.2.3"

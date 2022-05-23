@@ -1,0 +1,48 @@
+@import "~@moneymade/moneymade-ui/lib/index.css";
+
+$color-black4: #76767a;
+$color-black6: #b6b6bc;
+$color-teal: #14aea5;
+$color-pink-red: #e62b32;
+
+html,
+body {
+  font-family: "Aktiv Grotesk", sans-serif;
+
+  a {
+    text-decoration: none;
+  }
+
+  input,
+  select {
+    font-size: 100%;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+body {
+  font-size: 16px;
+  background-color: $color-black6;
+  overflow-x: hidden;
+}
+
+.color-green {
+  color: $color-teal;
+}
+
+.color-red {
+  color: $color-pink-red;
+}
+
+.color-grey {
+  color: $color-black4;
+}
