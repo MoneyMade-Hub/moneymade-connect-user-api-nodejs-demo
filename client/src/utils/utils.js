@@ -25,4 +25,17 @@ const getScriptTag = (callBack, errorCallback) => {
   }
 }
 
-export { sortAsc, getField, isAllRequiredFields, getFieldProp, getScriptTag }
+const toSetResponse = (success, responseObj, callback) => {
+  if (success) {
+    callback(responseObj)
+  } else {
+    try {
+      const { response } = responseObj
+      callback(response?.data)
+    } catch (error) {
+      callback({ message: 'something whent wrong' })
+    }
+  }
+}
+
+export { sortAsc, getField, isAllRequiredFields, getFieldProp, getScriptTag, toSetResponse }

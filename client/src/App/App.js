@@ -10,7 +10,7 @@ import {
   getUserAccountBankDetailsCall,
   getUserAccountHoldingsCall
 } from 'api/apiCalls'
-import { sortAsc, getField, isAllRequiredFields, getFieldProp, getScriptTag } from 'utils/utils'
+import { sortAsc, getField, isAllRequiredFields, getFieldProp, getScriptTag, toSetResponse } from 'utils/utils'
 import { INIT_FIELDS, JSON_RESPONSE } from 'static/consts'
 import styles from 'App/App.module.scss'
 
@@ -98,6 +98,12 @@ const App = () => {
     handleGetUserAccounts()
   }, [fields, handleChange, handleGetUserAccounts, setLoader])
 
+  useEffect(() => {
+    if (getFieldProp(fields, 'userId', 'value') && !getFieldProp(fields, 'token', 'value')) {
+      handleCreateSession()
+    }
+  }, [fields, handleCreateSession])
+
   const handleUserAccount = async () => {
     setLoader(true)
     // get user account
@@ -107,17 +113,7 @@ const App = () => {
       getFieldProp(fields, 'userId', 'value'),
       select
     )
-
-    if (successUserAccount) {
-      setJson(responseUserAccount)
-    } else {
-      try {
-        const { response } = responseUserAccount
-        setJson(response?.data)
-      } catch (error) {
-        setJson({ message: 'something whent wrong' })
-      }
-    }
+    toSetResponse(successUserAccount, responseUserAccount, setJson)
     setLoader(false)
   }
 
@@ -130,17 +126,7 @@ const App = () => {
         getFieldProp(fields, 'secretKey', 'value'),
         select
       )
-
-    if (successAccountBankDetails) {
-      setJson(responseAccountBankDetails)
-    } else {
-      try {
-        const { response } = responseAccountBankDetails
-        setJson(response?.data)
-      } catch (error) {
-        setJson({ message: 'something whent wrong' })
-      }
-    }
+    toSetResponse(successAccountBankDetails, responseAccountBankDetails, setJson)
     setLoader(false)
   }
 
@@ -152,44 +138,21 @@ const App = () => {
       getFieldProp(fields, 'secretKey', 'value'),
       select
     )
-
-    if (successUserHoldings) {
-      setJson(responseUserHoldings)
-    } else {
-      try {
-        const { response } = responseUserHoldings
-        setJson(response?.data)
-      } catch (error) {
-        setJson({ message: 'something whent wrong' })
-      }
-    }
+    toSetResponse(successUserHoldings, responseUserHoldings, setJson)
     setLoader(false)
   }
 
   const handleAccountTranasctions = async () => {}
 
-  useEffect(() => {
-    if (getFieldProp(fields, 'userId', 'value') && !getFieldProp(fields, 'token', 'value')) {
-      handleCreateSession()
-    }
-  }, [fields, handleCreateSession])
-
-  const handleConnect = useCallback(async () => {
-    setLoader(false)
+  const handleConnect = async () => {
     window.MoneyMadeWidget?.connect({
       clientKey: getFieldProp(fields, 'clientKey', 'value'),
       token: getFieldProp(fields, 'token', 'value'),
       clientUserId: getFieldProp(fields, 'clientUserId', 'value'),
       env: 'stage',
-      onSuccess: () => {
-        setLoader(false)
-        handleGetUserAccounts()
-      },
-      onError: () => setLoader(false),
-      onExpire: () => setLoader(false),
-      onClose: () => setLoader(false)
+      onSuccess: () => handleGetUserAccounts()
     })
-  }, [fields, handleGetUserAccounts, setLoader])
+  }
 
   return (
     <div className={styles.App}>
@@ -201,31 +164,18 @@ const App = () => {
         <P3 className={styles.Desc}>Please don't use production keys</P3>
 
         <div className={styles.InitData}>
-          {fields
-            .filter(({ hidden }) => !hidden)
-            .map(({ name, label, type, id }) => (
-              <div className={styles.InputContainer} key={id}>
-                <P3 weight="light"> {`${label}:`}</P3>
-                <Input
-                  inputSize="md"
-                  onChange={({ target: { value } }) => handleChange(value, name)}
-                  value={getField(fields, name)}
-                  type={type}
-                  disabled={loaderStatus || isReadyToConnect}
-                />
-              </div>
-            ))}
-        </div>
-
-        <div className={styles.InitData}>
-          {fields
-            .filter(({ hidden }) => hidden)
-            .map(({ name, label, type, id }) => (
-              <div className={styles.InputContainer} key={id}>
-                <P3 weight="light"> {`${label}:`}</P3>
-                <Input inputSize="md" value={getField(fields, name)} type={type} disabled />
-              </div>
-            ))}
+          {fields.map(({ name, label, type, id, hidden }) => (
+            <div className={styles.InputContainer} key={id}>
+              <P3 weight="light"> {`${label}:`}</P3>
+              <Input
+                inputSize="md"
+                onChange={({ target: { value } }) => handleChange(value, name)}
+                value={getField(fields, name)}
+                type={type}
+                disabled={hidden || loaderStatus || isReadyToConnect}
+              />
+            </div>
+          ))}
         </div>
 
         <P3 className={`${styles.Error} ${error ? styles.Show : styles.Hide}`}>{error}</P3>
@@ -249,7 +199,13 @@ const App = () => {
             size="md"
             onClick={() => {
               setLoader(true)
-              getScriptTag(handleConnect, () => setLoader(false))
+              getScriptTag(
+                () => {
+                  handleConnect()
+                  setLoader(false)
+                },
+                () => setLoader(false)
+              )
             }}
             className={styles.Btn}
             disabled={loaderStatus}
