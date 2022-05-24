@@ -51,4 +51,10 @@ const INIT_FIELDS = [
   }
 ]
 
-export { INIT_FIELDS }
+const JSON_RESPONSE = {
+  'your JSON response': {
+    'will be here': 'click a button to get real data'
+  }
+}
+
+export { INIT_FIELDS, JSON_RESPONSE }

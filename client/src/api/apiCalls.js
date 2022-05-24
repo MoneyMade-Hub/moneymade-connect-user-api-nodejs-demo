@@ -9,6 +9,95 @@ const globalAxios = (apiKeys, apiSecret) => {
   return axios
 }
 
+// GET
+const getUserAccountsCall = async (apiKeys, apiSecret, userId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: `${CREATE_USER}/${userId}${ACCOUNTS}`,
+      method: 'get'
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
+const getUserAccountCall = async (apiKeys, apiSecret, userId, accountId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: `${CREATE_USER}/${userId}${ACCOUNTS}/${accountId}`,
+      method: 'get'
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
+const getUserAccountBankDetailsCall = async (apiKeys, apiSecret, accountId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: `${CREATE_USER}${ACCOUNTS}/${accountId}${BANK_DETAILS}`,
+      method: 'get'
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
+const getUserAccountHoldingsCall = async (apiKeys, apiSecret, accountId) => {
+  try {
+    const response = await axios({
+      ...globalAxios(apiKeys, apiSecret),
+      url: `${CREATE_USER}${ACCOUNTS}/${accountId}${HOLDINGS}`,
+      method: 'get'
+    })
+
+    const { data } = response
+
+    return {
+      success: true,
+      response: data
+    }
+  } catch (error) {
+    return {
+      success: false,
+      response: { ...error }
+    }
+  }
+}
+
 // POST
 const createUserCall = async (apiKeys, apiSecret, clientUserId) => {
   try {
@@ -60,27 +149,11 @@ const createUserSessionCall = async (apiKeys, apiSecret, userId) => {
   }
 }
 
-// {{API_URL}}/moneymade-users/a9bc2d0a-4335-41c9-84af-6de7d1b66135/accounts
-const getUserAccountsCall = async (apiKeys, apiSecret, userId) => {
-  try {
-    const response = await axios({
-      ...globalAxios(apiKeys, apiSecret),
-      url: `${CREATE_USER}/${userId}${ACCOUNTS}`,
-      method: 'get'
-    })
-
-    const { data } = response
-
-    return {
-      success: true,
-      response: data
-    }
-  } catch (error) {
-    return {
-      success: false,
-      response: { ...error }
-    }
-  }
+export {
+  createUserCall,
+  createUserSessionCall,
+  getUserAccountsCall,
+  getUserAccountCall,
+  getUserAccountBankDetailsCall,
+  getUserAccountHoldingsCall
 }
-
-export { createUserCall, createUserSessionCall, getUserAccountsCall }
