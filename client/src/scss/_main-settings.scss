@@ -1,0 +1,34 @@
+html,
+body {
+  font-family: $font-main;
+
+  a {
+    text-decoration: none;
+  }
+
+  input,
+  select {
+    font-size: 100%;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+body {
+  font-size: 16px;
+  background-color: $color-black10;
+  overflow-x: hidden;
+
+  #nprogress {
+    position: relative;
+    z-index: 99100;
+  }
+}

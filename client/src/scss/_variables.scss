@@ -1,0 +1,65 @@
+// Breakpoints
+$xs: 361px;
+$sm: 601px;
+$md: 961px;
+$lg: 1281px;
+$xl: 1461px;
+$xl2: 1921px;
+
+// Fonts
+$font-main: 'Aktiv Grotesk', sans-serif;
+$font-heading: 'Aktiv Grotesk Extended', sans-serif;
+$font-banner: 'Akira Expanded', sans-serif;
+
+// Colors black
+$color-black: #000000;
+$color-black2: #1b1b1f;
+$color-black3: #424247;
+$color-black4: #76767a;
+$color-black5: #9e9ea5;
+$color-black6: #b6b6bc;
+$color-black7: #ceced2;
+$color-black8: #e8e8eb;
+$color-black9: #f2f2f4;
+$color-black10: #f9f9fb;
+$color-white: #ffffff;
+// Colors red
+$color-red1: #5f0e1d;
+$color-red2: #8e152b;
+$color-red3: #be1c3a;
+$color-red4: #d52041;
+$color-red5: #ed2348;
+$color-red6: #f14f6d;
+$color-red7: #f47b91;
+$color-red8: #f8a7b6;
+$color-red9: #fbd3da;
+$color-red10: #fde9ed;
+$color-red: #ff3b13;
+// Colors additional
+$color-green: #00993f;
+$color-cold-green: #35a577;
+$color-turquoise: #23cdc3;
+$color-light-blue: #bbd9e4;
+$color-yellow: #f7d633;
+$color-orange: #ff9700;
+$color-pink-red: #e62b32;
+$color-blue: #1e4bda;
+$color-navy-blue: #1b73e2;
+$color-indigo: #2620a6;
+$color-pale-indigo: #29328d;
+$color-pink: #ff9fc4;
+
+// Transition
+$trans-fast: 0.1s ease;
+$trans: 0.3s ease;
+
+// Shadows
+$card-shadow: 0px 2px 4px rgba($color-black, 0.1);
+$card-shadow-hover: 0px 4px 12px rgba($color-black, 0.1);
+$popover-shadow: 0px 2px 8px rgba($color-black, 0.1);
+$nav-shadow: 0px 4px 16px rgba($color-black, 0.15);
+$modal-shadow: 0px 8px 32px rgba($color-black, 0.15);
+$mockups-shadow: 24px 24px 40px rgba($color-black, 0.15), 24px 40px 80px rgba($color-black, 0.15);
+
+// width
+$maxWidth: 400px;

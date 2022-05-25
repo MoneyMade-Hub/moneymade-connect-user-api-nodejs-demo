@@ -1,0 +1,117 @@
+@import 'scss/variables';
+@import 'scss/keyframes';
+
+body {
+  .App {
+    margin: 20px 0;
+    text-align: center;
+
+    .Container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(10px + 2vmin);
+      color: $color-white;
+
+      .Title {
+        margin: 10px 0;
+      }
+
+      .Desc {
+        margin: 10px 0;
+        color: $color-red4;
+      }
+
+      .InitData {
+        display: grid;
+        width: 80%;
+        padding: 8px 0;
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        .InputContainer {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        @media (min-width: $sm) {
+          grid-template-columns: 2fr 2fr;
+        }
+      }
+
+      .Btn {
+        margin: 10px 0;
+      }
+
+      .Loader {
+        margin: 10px 0;
+      }
+
+      .Error {
+        color: $color-red5;
+      }
+
+      .CreateBtn,
+      .ConnectBtns,
+      .Select,
+      .Error {
+        &.Show {
+          animation: fade 2s ease;
+          opacity: 1;
+        }
+
+        &.Hide {
+          opacity: 0;
+          display: none;
+        }
+      }
+
+      .ConnectBtns {
+        display: grid;
+        grid-template-columns: 1fr;
+
+        @media (min-width: $sm) {
+          grid-template-columns: 2fr 2fr;
+          gap: 16px;
+        }
+      }
+
+      .Select {
+        display: grid;
+        margin-top: 20px;
+        width: 100%;
+        grid-template-columns: 1fr;
+        gap: 16px;
+
+        @media (min-width: $sm) {
+          grid-template-columns: 1fr 3fr;
+        }
+
+        .Right {
+          text-align: left;
+          font-size: 14px;
+
+          &.Show {
+            animation: fade 2s ease;
+            opacity: 1;
+          }
+
+          &.Hide {
+            opacity: 0;
+            display: none;
+          }
+        }
+      }
+
+      :global(.mu-select),
+      :global(.mu-option) {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 10px;
+      }
+    }
+  }
+}
