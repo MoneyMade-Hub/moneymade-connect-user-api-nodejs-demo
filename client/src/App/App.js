@@ -34,11 +34,20 @@ const App = () => {
   const [select, setSelect] = useState({})
   const [json, setJson] = useState(JSON_RESPONSE)
   const { loaderStatus, loaderElement, setLoader } = useLoader(false)
+  const { loaderStatus: loaderStatusConnect, setLoader: setLoaderConnect } = useLoader(false)
 
   const isReadyToConnect = useMemo(
     () => !!getFieldProp(fields, 'token', 'value') && !!getFieldProp(fields, 'clientUserId', 'value'),
     [fields]
   )
+
+  useEffect(() => {
+    if (!isReadyToConnect) setAccounts([])
+  }, [isReadyToConnect])
+
+  useEffect(() => {
+    if (loaderStatusConnect) setAccounts([])
+  }, [loaderStatusConnect])
 
   const handleChange = useCallback(
     (value, field, refreshToken = false) => {
@@ -175,7 +184,11 @@ const App = () => {
       token: getFieldProp(fields, 'token', 'value'),
       clientUserId: getFieldProp(fields, 'clientUserId', 'value'),
       env: 'stage',
-      onSuccess: () => handleGetUserAccounts()
+      onSuccess: async () => {
+        setLoaderConnect(true)
+        await handleGetUserAccounts()
+        setLoaderConnect(false)
+      }
     })
   }
 
@@ -266,7 +279,7 @@ const App = () => {
           </MainButton>
         </div>
 
-        {isReadyToConnect && !!accounts?.length && (
+        {!!accounts?.length && (
           <div className={`${styles.Select} ${isReadyToConnect ? styles.Show : styles.Hide}`}>
             <div className={styles.Left}>
               <Select
