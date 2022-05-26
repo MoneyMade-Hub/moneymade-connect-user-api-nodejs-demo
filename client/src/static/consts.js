@@ -29,7 +29,8 @@ const INIT_FIELDS = [
     label: 'Client User Id',
     value: '',
     correct: false,
-    type: 'text'
+    type: 'text',
+    show: true
   },
   {
     id: 5,
@@ -47,7 +48,8 @@ const INIT_FIELDS = [
     value: '',
     correct: false,
     type: 'text',
-    hidden: true
+    hidden: true,
+    copy: true
   }
 ]
 

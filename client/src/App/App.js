@@ -1,6 +1,18 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { MainButton, Container, Input, H3, P3, useLoader, Select, Option, Avatar } from '@moneymade/moneymade-ui'
+import {
+  MainButton,
+  Container,
+  Input,
+  H3,
+  P3,
+  useLoader,
+  Select,
+  Option,
+  Avatar,
+  CircleButton
+} from '@moneymade/moneymade-ui'
 import ReactJson from 'react-json-view'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
 
 import {
   createUserCall,
@@ -16,6 +28,7 @@ import styles from 'App/App.module.scss'
 
 const App = () => {
   const [fields, setFields] = useState(INIT_FIELDS)
+  const [disabledInputs, setDisabledInputs] = useState(false)
   const [error, setError] = useState('')
   const [accounts, setAccounts] = useState([])
   const [select, setSelect] = useState({})
@@ -28,12 +41,17 @@ const App = () => {
   )
 
   const handleChange = useCallback(
-    (value, field) => {
-      const other = fields.filter(({ name }) => name !== field)
+    (value, field, refreshToken = false) => {
+      const other =
+        isReadyToConnect && !refreshToken
+          ? fields.filter(({ name }) => name !== field && name !== 'userId' && name !== 'token')
+          : fields.filter(({ name }) => name !== field)
+      const generated =
+        isReadyToConnect && !refreshToken ? INIT_FIELDS.filter(({ name }) => name === 'userId' || name === 'token') : []
       const { correct, ...rest } = fields.find(({ name }) => name === field)
-      setFields([...other, { ...rest, value, correct: !!value }].sort(sortAsc))
+      setFields([...other, ...generated, { ...rest, value, correct: !!value }].sort(sortAsc))
     },
-    [fields]
+    [fields, isReadyToConnect]
   )
 
   const handleGetUserAccounts = useCallback(async () => {
@@ -76,27 +94,31 @@ const App = () => {
     setLoader(false)
   }
 
-  const handleCreateSession = useCallback(async () => {
-    setLoader(true)
-    // get user token
-    const { success: successUserSession, response: responseUserSession } = await createUserSessionCall(
-      getFieldProp(fields, 'apiKey', 'value'),
-      getFieldProp(fields, 'secretKey', 'value'),
-      getFieldProp(fields, 'userId', 'value')
-    )
+  const handleCreateSession = useCallback(
+    async (refreshToken = false) => {
+      setLoader(true)
+      // get user token
+      const { success: successUserSession, response: responseUserSession } = await createUserSessionCall(
+        getFieldProp(fields, 'apiKey', 'value'),
+        getFieldProp(fields, 'secretKey', 'value'),
+        getFieldProp(fields, 'userId', 'value')
+      )
 
-    if (successUserSession) {
-      const { token } = responseUserSession
-      handleChange(token, 'token')
-      setError('')
-    } else {
-      const { response } = responseUserSession
-      setError(response?.data?.message || '')
-    }
-    setLoader(false)
-
-    handleGetUserAccounts()
-  }, [fields, handleChange, handleGetUserAccounts, setLoader])
+      if (successUserSession) {
+        const { token } = responseUserSession
+        handleChange(token, 'token', refreshToken)
+        setDisabledInputs(true)
+        setError('')
+      } else {
+        const { response } = responseUserSession
+        setError(response?.data?.message || '')
+      }
+      setLoader(false)
+      // get account for current user
+      handleGetUserAccounts()
+    },
+    [fields, handleChange, handleGetUserAccounts, setLoader]
+  )
 
   useEffect(() => {
     if (getFieldProp(fields, 'userId', 'value') && !getFieldProp(fields, 'token', 'value')) {
@@ -145,6 +167,9 @@ const App = () => {
   const handleAccountTranasctions = async () => {}
 
   const handleConnect = async () => {
+    // refresh token
+    await handleCreateSession(true)
+    // open widget
     window.MoneyMadeWidget?.connect({
       clientKey: getFieldProp(fields, 'clientKey', 'value'),
       token: getFieldProp(fields, 'token', 'value'),
@@ -164,16 +189,23 @@ const App = () => {
         <P3 className={styles.Desc}>Please don't use production keys</P3>
 
         <div className={styles.InitData}>
-          {fields.map(({ name, label, type, id, hidden }) => (
+          {fields.map(({ name, label, type, id, hidden, show, copy, value }) => (
             <div className={styles.InputContainer} key={id}>
               <P3 weight="light"> {`${label}:`}</P3>
-              <Input
-                inputSize="md"
-                onChange={({ target: { value } }) => handleChange(value, name)}
-                value={getField(fields, name)}
-                type={type}
-                disabled={hidden || loaderStatus || isReadyToConnect}
-              />
+
+              <div className={styles.Bottom}>
+                <Input
+                  inputSize="md"
+                  onChange={({ target: { value } }) => handleChange(value, name)}
+                  value={getField(fields, name)}
+                  type={type}
+                  disabled={hidden || loaderStatus || (disabledInputs && !show)}
+                />
+
+                <CopyToClipboard text={value} className={`${styles.Copy} ${copy && value ? styles.Show : styles.Hide}`}>
+                  <CircleButton color="blue" size="sm" opacity={0.5} icon={<i className="icon-copy" />} />
+                </CopyToClipboard>
+              </div>
             </div>
           ))}
         </div>
@@ -224,12 +256,13 @@ const App = () => {
               setAccounts([])
               setSelect({})
               setJson('')
+              setDisabledInputs(false)
             }}
             className={styles.Btn}
             disabled={loaderStatus}
             iconBefore={<i className="icon-delete" />}
           >
-            Reset Account
+            Clear
           </MainButton>
         </div>
 

@@ -34,6 +34,35 @@ body {
           display: flex;
           flex-direction: column;
           gap: 8px;
+
+          .Bottom {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+
+            div {
+              width: 100%;
+            }
+
+            .Copy {
+              &.Show {
+                animation: fade 2s ease;
+                opacity: 1;
+              }
+
+              &.Hide {
+                opacity: 0;
+                display: none;
+              }
+            }
+
+            button {
+              min-height: 38px;
+              min-width: 38px;
+              box-shadow: 0 0 0 0 transparent;
+            }
+          }
         }
 
         @media (min-width: $sm) {
