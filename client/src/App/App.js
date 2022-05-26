@@ -266,7 +266,7 @@ const App = () => {
           </MainButton>
         </div>
 
-        {!!accounts?.length && (
+        {isReadyToConnect && !!accounts?.length && (
           <div className={`${styles.Select} ${isReadyToConnect ? styles.Show : styles.Hide}`}>
             <div className={styles.Left}>
               <Select
