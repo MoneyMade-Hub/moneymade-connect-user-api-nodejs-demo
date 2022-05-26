@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "build-client": "npm --prefix client run build",
     "client": "npm start --prefix client",
     "full-stack": "concurrently \"npm run start\" \"npm run client\"",
     "test": "DOTENV_CONFIG_PATH=.env.test jest",

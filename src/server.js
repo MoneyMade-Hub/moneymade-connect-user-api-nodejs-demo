@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const cors = require('cors');
+const { resolve } = require('path');
 
 const { initializeSDK } = require('./sdk');
 
@@ -10,6 +11,8 @@ async function createServer () {
 
   app.use(cors());
   app.use(bodyParser.json());
+
+  app.use(express.static(resolve(__dirname, '../client/build')));
 
   app.use((req, res, next) => {
     if (!req.headers['api-key']) {
